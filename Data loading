@@ -1,0 +1,12 @@
+import pandas as pd
+
+try:
+    df = pd.read_csv('shopping_trends.csv')
+    display(df.head())
+    print(df.shape)
+except FileNotFoundError:
+    print("Error: 'shopping_trends.csv' not found.")
+except pd.errors.ParserError:
+    print("Error: Could not parse 'shopping_trends.csv'. Check file format.")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
