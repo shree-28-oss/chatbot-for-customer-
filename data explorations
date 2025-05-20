@@ -1,0 +1,26 @@
+print(df.dtypes)
+
+# Descriptive statistics for numerical columns
+print(df.describe())
+
+# Missing values
+print(df.isnull().sum())
+print(df.isnull().sum() / len(df) * 100)
+
+# Unique values in categorical columns
+for col in ['Category', 'Location', 'Payment Method', 'Item Purchased', 'Shipping Type', 'Discount Applied', 'Promo Code Used', 'Subscription Status', 'Gender', 'Size', 'Color', 'Season', 'Preferred Payment Method', 'Frequency of Purchases']:
+    print(f"\nUnique values for {col}:")
+    print(df[col].unique())
+    print(f"Number of unique values: {df[col].nunique()}")
+
+# Relationship between 'Purchase Amount (USD)' and 'Review Rating'
+print(df[['Purchase Amount (USD)', 'Review Rating']].corr())
+
+# Basic visualization: Scatter plot of Purchase Amount vs. Review Rating
+import matplotlib.pyplot as plt
+plt.figure(figsize=(8, 6))
+plt.scatter(df['Purchase Amount (USD)'], df['Review Rating'], alpha=0.5)
+plt.xlabel('Purchase Amount (USD)')
+plt.ylabel('Review Rating')
+plt.title('Purchase Amount vs. Review Rating')
+plt.show()
