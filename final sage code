@@ -1,0 +1,296 @@
+import pandas as pd
+
+try:
+    df = pd.read_csv('shopping_trends.csv')
+    display(df.head())
+    print(df.shape)
+except FileNotFoundError:
+    print("Error: 'shopping_trends.csv' not found.")
+except pd.errors.ParserError:
+    print("Error: Could not parse 'shopping_trends.csv'. Check file format.")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
+    print(df.dtypes)
+
+# Descriptive statistics for numerical columns
+print(df.describe())
+
+# Missing values
+print(df.isnull().sum())
+print(df.isnull().sum() / len(df) * 100)
+
+# Unique values in categorical columns
+for col in ['Category', 'Location', 'Payment Method', 'Item Purchased', 'Shipping Type', 'Discount Applied', 'Promo Code Used', 'Subscription Status', 'Gender', 'Size', 'Color', 'Season', 'Preferred Payment Method', 'Frequency of Purchases']:
+    print(f"\nUnique values for {col}:")
+    print(df[col].unique())
+    print(f"Number of unique values: {df[col].nunique()}")
+
+# Relationship between 'Purchase Amount (USD)' and 'Review Rating'
+print(df[['Purchase Amount (USD)', 'Review Rating']].corr())
+
+# Basic visualization: Scatter plot of Purchase Amount vs. Review Rating
+import matplotlib.pyplot as plt
+plt.figure(figsize=(8, 6))
+plt.scatter(df['Purchase Amount (USD)'], df['Review Rating'], alpha=0.5)
+plt.xlabel('Purchase Amount (USD)')
+plt.ylabel('Review Rating')
+plt.title('Purchase Amount vs. Review Rating')
+plt.show()
+# Relevant columns for customer support chatbot
+relevant_columns = ['Customer ID', 'Item Purchased', 'Category', 'Purchase Amount (USD)', 'Review Rating', 'Payment Method', 'Shipping Type', 'Discount Applied', 'Promo Code Used', 'Previous Purchases', 'Subscription Status', 'Location']
+
+# Summarize findings
+print("Summary of Findings:")
+print("-" * 20)
+print("Data Types:")
+print(df.dtypes)
+print("\nDescriptive Statistics (Numerical Columns):")
+print(df.describe())
+print("\nMissing Values:")
+print(df.isnull().sum())  # Display the number of missing values per column
+print("\nPercentage of Missing Values:")
+print(df.isnull().sum() / len(df) * 100) # Display the percentage of missing values per column
+print("\nRelevant Columns for Chatbot:")
+print(relevant_columns)
+print("\nReasoning:")
+print("The selected columns provide information about customer purchases, product details, payment methods, shipping preferences, discounts, promotions, and purchase history, which are crucial for addressing customer queries and providing personalized support.")
+import pandas as pd
+import re
+
+# Sample data (Replace with your actual dataset)
+data = {
+    'Item Purchased': ['Red Shirt', 'Running Shoes', 'Silver Necklace', 'Hair Dryer'],
+    'Category': ['Clothing', 'Footwear', 'Jewelry', 'Beauty'],
+    'Review Rating': [4.5, 3.8, 4.7, 4.2]
+}
+
+# Create DataFrame
+df = pd.DataFrame(data)
+
+# Function to categorize queries
+def categorize_query(item):
+    item = str(item).lower()
+    if any(keyword in item for keyword in ["return", "exchange", "refund"]):
+        return "Returns/Exchanges"
+    elif any(keyword in item for keyword in ["order", "status", "track", "shipped"]):
+        return "Order Status"
+    elif any(keyword in item for keyword in ["payment", "issue", "charge", "refund"]):
+        return "Payment Issues"
+    elif any(keyword in item for keyword in ["information", "details", "description", "material", "size", "color"]):
+        return "Product Information"
+    elif any(keyword in item for keyword in ["shipping", "delivery", "update", "address"]):
+        return "Shipping Updates"
+    else:
+        return "Other"
+
+df['Query Category'] = df['Item Purchased'].apply(categorize_query)
+
+# Function to preprocess text
+def preprocess_text(text):
+    text = str(text).lower()
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    return text
+
+df['Processed Item Purchased'] = df['Item Purchased'].apply(preprocess_text)
+
+# Check if 'Category' column exists before one-hot encoding
+if 'Category' in df.columns:
+    category_dummies = pd.get_dummies(df['Category'], prefix='Category')
+    df = pd.concat([df, category_dummies], axis=1)
+else:
+    category_dummies = pd.DataFrame()
+
+# Combine features into a single DataFrame
+columns_to_include = ['Processed Item Purchased', 'Query Category', 'Review Rating']
+columns_to_include += list(category_dummies.columns)  # Add dynamically created dummy columns
+chatbot_df = df[columns_to_include]
+
+# Display first few rows
+display(chatbot_df.head())
+
+import re
+import pandas as pd
+
+def categorize_query(item):
+    item = str(item).lower()
+    if any(keyword in item for keyword in ["return", "exchange", "refund"]):
+        return "Returns/Exchanges"
+    elif any(keyword in item for keyword in ["order", "status", "track", "shipped"]):
+        return "Order Status"
+    elif any(keyword in item for keyword in ["payment", "issue", "charge", "refund"]):
+        return "Payment Issues"
+    elif any(keyword in item for keyword in ["information", "details", "description", "material", "size", "color"]):
+        return "Product Information"
+    elif any(keyword in item for keyword in ["shipping", "delivery", "update", "address"]):
+        return "Shipping Updates"
+    else:
+        return "Other"
+
+df['Query Category'] = df['Item Purchased'].apply(categorize_query)
+
+def preprocess_text(text):
+    text = str(text).lower()
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    return text
+
+df['Processed Item Purchased'] = df['Item Purchased'].apply(preprocess_text)
+
+# One-hot encode the 'Category' column
+category_dummies = pd.get_dummies(df['Category'], prefix='Category')
+df = pd.concat([df, category_dummies], axis=1)
+
+#Get the actual column names after one-hot encoding
+actual_columns = category_dummies.columns.tolist()
+
+# Combine features into a single DataFrame, using actual column names
+columns_to_select = ['Processed Item Purchased', 'Query Category', 'Review Rating']
+columns_to_select.extend(actual_columns)
+chatbot_df = df[columns_to_select]
+
+display(chatbot_df.head())
+def categorize_query(item):
+    item = str(item).lower()
+    if any(keyword in item for keyword in ["return", "exchange", "refund"]):
+        return "Returns/Exchanges"
+    elif any(keyword in item for keyword in ["order", "status", "track", "shipped"]):
+        return "Order Status"
+    elif any(keyword in item for keyword in ["payment", "issue", "charge", "refund"]):
+        return "Payment Issues"
+    elif any(keyword in item for keyword in ["information", "details", "description", "material", "size", "color"]):
+        return "Product Information"
+    elif any(keyword in item for keyword in ["shipping", "delivery", "update", "address"]):
+        return "Shipping Updates"
+    else:
+        return "Other"
+
+df['Query Category'] = df['Item Purchased'].apply(categorize_query)
+
+def preprocess_text(text):
+    text = str(text).lower()
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    return text
+
+df['Processed Item Purchased'] = df['Item Purchased'].apply(preprocess_text)
+
+# One-hot encode the 'Category' column
+category_dummies = pd.get_dummies(df['Category'], prefix='Category')
+df = pd.concat([df, category_dummies], axis=1)
+
+#Get the actual column names after one-hot encoding
+actual_columns = category_dummies.columns.tolist()
+
+# Combine features into a single DataFrame, using actual column names
+columns_to_select = ['Processed Item Purchased', 'Query Category', 'Review Rating']
+columns_to_select.extend(actual_columns)
+chatbot_df = df[columns_to_select]
+
+# Remove duplicate columns
+chatbot_df = chatbot_df.loc[:,~chatbot_df.columns.duplicated()]
+
+display(chatbot_df.head())
+# TF-IDF Vectorization
+vectorizer = TfidfVectorizer(max_features=100, ngram_range=(1, 2), stop_words='english')
+tfidf_features = vectorizer.fit_transform(chatbot_df['Processed Item Purchased'])
+tfidf_df = pd.DataFrame(tfidf_features.toarray(), columns=vectorizer.get_feature_names_out(), index=chatbot_df.index)
+
+# Concatenate TF-IDF features with other numerical features
+numerical_cols = ['Review Rating']
+numerical_cols.extend(['Category_' + col for col in ['Accessories', 'Clothing', 'Footwear', 'Outerwear']])
+features_df = pd.concat([chatbot_df[numerical_cols], tfidf_df], axis=1)
+
+
+# Scale numerical features
+scaler = StandardScaler()
+numerical_features_to_scale = features_df.columns.tolist()
+features_df[numerical_features_to_scale] = scaler.fit_transform(features_df[numerical_features_to_scale])
+
+# Display the first few rows of the combined features DataFrame
+display(features_df.head())
+from sklearn.model_selection import train_test_split
+
+# Define features (X) and target (y)
+X = features_df.drop('Review Rating', axis=1)
+y = features_df['Review Rating']
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+
+# Initialize and train the model
+model = RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42)
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model (optional)
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error: {mse}")
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+import matplotlib.pyplot as plt
+
+# Calculate evaluation metrics
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+mae = mean_absolute_error(y_test, y_pred)
+
+print(f"Mean Squared Error (MSE): {mse}")
+print(f"R-squared (R2): {r2}")
+print(f"Mean Absolute Error (MAE): {mae}")
+
+# Create a scatter plot of predicted vs. actual review ratings
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred, alpha=0.5, color='blue')
+plt.xlabel("Actual Review Rating")
+plt.ylabel("Predicted Review Rating")
+plt.title("Actual vs. Predicted Review Ratings")
+plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--') # Add a diagonal line for reference
+plt.show()
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+import matplotlib.pyplot as plt
+
+# Define the parameter grid
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+# Initialize the model
+rf_model = RandomForestRegressor(random_state=42)
+
+# Perform GridSearchCV
+grid_search = GridSearchCV(estimator=rf_model, param_grid=param_grid, cv=3, scoring='neg_mean_squared_error', n_jobs=-1)
+grid_search.fit(X_train, y_train)
+
+# Get the best model
+best_rf_model = grid_search.best_estimator_
+print(f"Best Hyperparameters: {grid_search.best_params_}")
+
+# Train the best model on the entire training set
+best_rf_model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred_optimized = best_rf_model.predict(X_test)
+
+# Evaluate the optimized model
+mse_optimized = mean_squared_error(y_test, y_pred_optimized)
+r2_optimized = r2_score(y_test, y_pred_optimized)
+mae_optimized = mean_absolute_error(y_test, y_pred_optimized)
+
+print(f"Optimized Model - Mean Squared Error (MSE): {mse_optimized}")
+print(f"Optimized Model - R-squared (R2): {r2_optimized}")
+print(f"Optimized Model - Mean Absolute Error (MAE): {mae_optimized}")
+
+# Generate a scatter plot of predicted vs. actual review ratings for the optimized model
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred_optimized, alpha=0.5, color='blue')
+plt.xlabel("Actual Review Rating")
+plt.ylabel("Predicted Review Rating")
+plt.title("Actual vs. Predicted Review Ratings (Optimized Model)")
+plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--')  # Add a diagonal line
+plt.show()
